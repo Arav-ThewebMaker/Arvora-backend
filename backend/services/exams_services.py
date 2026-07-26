@@ -1,5 +1,6 @@
 from db_pool import pool
 from datetime import datetime
+from psycopg.rows import dict_row
 
 
 def add_exam(user_id, subject, date, target_percentage, current_percentage, importance):
@@ -54,36 +55,24 @@ def add_exam(user_id, subject, date, target_percentage, current_percentage, impo
 def get_exams(user_id):
 
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor(row_factory=dict_row) as cur:
 
-        cur.execute("""
-            SELECT id,
-                user_id,
-                subject,
-                date,
-                target_percentage,
-                current_percentage,
-                importance
-            FROM exams
-            WHERE user_id = %s
-        """, (user_id,))
+            cur.execute(
+                """
+                SELECT *
+                FROM exams
+                WHERE user_id = %s
+                ORDER BY date ASC
+                """,
+                (user_id,)
+            )
 
-        rows = cur.fetchall()
+            rows = cur.fetchall()
 
-    exams = []
+    for exam in rows:
+        exam["date"] = str(exam["date"])
 
-    for r in rows:
-        exams.append({
-            "id": r[0],
-            "user_id": r[1],
-            "subject": r[2],
-            "date": str(r[3]),
-            "target_percentage": r[4],
-            "current_percentage": r[5],
-            "importance": r[6]
-        })
-
-    return exams
+    return rows
 
 
 def delete_exam(user_id, exam_id):

@@ -1,64 +1,124 @@
 from db_pool import pool
+from psycopg.rows import dict_row
 
 
-def record_study_session(user_id, subject, date, minutes, focus, study_method, rating, chapter_name=None):
+def record_study_session(
+    user_id,
+    subject,
+    date,
+    minutes,
+    focus,
+    study_method,
+    rating,
+    chapter_name=None
+):
+
+    if not subject or subject.strip() == "":
+        return {
+            "status": "error",
+            "message": "Subject is required"
+        }
+
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor() as cur:
 
-        if not subject or subject.strip() == "":
-            return {
-                "status": "error",
-                "message": "Subject is required"
-            }
+            cur.execute("""
+                INSERT INTO study_sessions (
+                    user_id,
+                    subject,
+                    chapter_name,
+                    date,
+                    minutes,
+                    focus,
+                    method,
+                    rating
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                user_id,
+                subject,
+                chapter_name,
+                date,
+                minutes,
+                focus,
+                study_method,
+                rating
+            ))
 
-        cur.execute("""
-            INSERT INTO study_sessions (user_id, subject, chapter_name, date, minutes, focus, method, rating)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)       
-        """, (user_id, subject, chapter_name, date, minutes, focus, study_method, rating))
+            conn.commit()
 
-        conn.commit()
-
-    return {"status": "success"}
+    return {
+        "status": "success"
+    }
 
 
 def get_study_sessions(user_id):
+
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor(row_factory=dict_row) as cur:
 
-        cur.execute(
-            "SELECT * FROM study_sessions WHERE user_id = %s", (user_id, ))
-        result = cur.fetchall()
+            cur.execute("""
+            SELECT 
+                id,
+                user_id,
+                subject,
+                chapter_name,
+                date,
+                minutes,
+                focus,
+                method,
+                rating
+                FROM study_sessions
+                WHERE user_id = %s
+                ORDER BY date DESC
+            """, (
+                user_id,
+            ))
 
-    return [
-        {"id": r[0],
-         "user_id": r[1],
-         "subject": r[2],
-         "chapter_name": r[3],
-         "date": str(r[4]),
-         "minutes": r[5],
-         "focus": r[6],
-         "method": r[7],
-         "rating": r[8]}
-        for r in result
-    ]
+            sessions = cur.fetchall()
+
+    for session in sessions:
+        session["date"] = str(session["date"])
+
+    return sessions
 
 
 def delete_study_session(session_id, user_id):
+
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor() as cur:
 
-        cur.execute("""
-            DELETE FROM study_sessions
-            WHERE id = %s AND user_id = %s
-        """, (session_id, user_id))
+            cur.execute("""
+                DELETE FROM study_sessions
+                WHERE id = %s
+                AND user_id = %s
+            """, (
+                session_id,
+                user_id
+            ))
 
-        conn.commit()
+            deleted = cur.rowcount
 
-    return {"status": "deleted",
-            "Rows deleted": cur.rowcount}
+            conn.commit()
+
+    return {
+        "status": "deleted",
+        "Rows deleted": deleted
+    }
 
 
-def update_study_session(session_id, user_id, subject, date, study_time, focus, method, rating, chapter_name):
+def update_study_session(
+    session_id,
+    user_id,
+    subject,
+    date,
+    study_time,
+    focus,
+    method,
+    rating,
+    chapter_name
+):
+
     with pool.connection() as conn:
         with conn.cursor() as cur:
 
@@ -71,9 +131,22 @@ def update_study_session(session_id, user_id, subject, date, study_time, focus, 
                     method = %s,
                     rating = %s,
                     chapter_name = %s
-                WHERE id = %s AND user_id = %s
-            """, (subject, date, study_time, focus, method, rating, chapter_name, session_id, user_id))
+                WHERE id = %s
+                AND user_id = %s
+            """, (
+                subject,
+                date,
+                study_time,
+                focus,
+                method,
+                rating,
+                chapter_name,
+                session_id,
+                user_id
+            ))
 
             conn.commit()
 
-    return {"status": "updated"}
+    return {
+        "status": "updated"
+    }
