@@ -2,8 +2,9 @@ from .progress_service import (
     get_minutes_for_subject,
     get_avg_focus_for_subject,
     get_subject_consistency,
-    get_study_sessions
 )
+
+from .study_sessions_service import get_study_sessions
 from .exams_services import get_exams
 
 
