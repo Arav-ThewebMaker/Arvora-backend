@@ -10,6 +10,7 @@ from .exam_readiness_service import get_all_exam_readiness
 from .daily_plan_service import generate_daily_plan
 from .recommendation_services import get_ranked_exams
 from .exams_services import get_exams
+from datetime import datetime
 
 
 def get_dashboard_data(user_id, study_time):
@@ -26,6 +27,12 @@ def get_dashboard_data(user_id, study_time):
 
         sessions = sessions_future.result()
         exams = exams_future.result()
+
+    for session in sessions:
+        session["parsed_date"] = datetime.strptime(
+            session["date"],
+            "%Y-%m-%d"
+        ).date()
 
     ranked_exams = get_ranked_exams(exams)
 
