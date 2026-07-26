@@ -29,7 +29,7 @@ def get_average_focus(sessions):
     for session in sessions:
         total_focus += session["focus"]
 
-    avg_focus = round(total_focus/get_total_sessions(user_id), 2)
+    avg_focus = round(total_focus/get_total_sessions(sessions), 2)
 
     return avg_focus
 
