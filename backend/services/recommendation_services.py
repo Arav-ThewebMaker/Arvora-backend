@@ -6,10 +6,13 @@ def calculate_exam_urgency(exam):
     if not exam["date"]:
         return 0
 
-    exam_date = datetime.strptime(
-        exam["date"],
-        "%Y-%m-%d"
-    )
+    if isinstance(exam["date"], str):
+        exam_date = datetime.strptime(
+            exam["date"],
+            "%Y-%m-%d"
+        ).date()
+    else:
+        exam_date = exam["date"]
 
     today = datetime.now()
 
