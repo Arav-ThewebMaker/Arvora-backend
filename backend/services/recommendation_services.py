@@ -37,6 +37,8 @@ def calculate_exam_urgency(exam):
 
 
 def get_ranked_exams(exams):
+    print("TYPE:", type(exams))
+    print("VALUE:", exams)
 
     for exam in exams:
         exam["urgency"] = calculate_exam_urgency(exam)
