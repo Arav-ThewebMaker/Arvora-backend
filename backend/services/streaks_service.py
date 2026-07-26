@@ -13,14 +13,20 @@ def calculate_streak(user_id):
         for session in sessions
     }
 
-    dates = sorted(dates)
+    today = datetime.today().date()
 
-    streak = 1
+    # If user didn't study today, allow yesterday.
+    if today in dates:
+        current = today
+    elif (today - timedelta(days=1)) in dates:
+        current = today - timedelta(days=1)
+    else:
+        return 0
 
-    for i in range(len(dates) - 1, 0, -1):
-        if dates[i] - dates[i - 1] == timedelta(days=1):
-            streak += 1
-        else:
-            break
+    streak = 0
+
+    while current in dates:
+        streak += 1
+        current -= timedelta(days=1)
 
     return streak
