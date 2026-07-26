@@ -4,8 +4,7 @@ from .streaks_service import calculate_streak
 from datetime import datetime, timedelta
 
 
-def get_total_study_minutes(user_id):
-    sessions = get_study_sessions(user_id)
+def get_total_study_minutes(sessions):
 
     total_minutes = 0
 
@@ -16,8 +15,7 @@ def get_total_study_minutes(user_id):
     return total_minutes
 
 
-def get_total_sessions(user_id):
-    sessions = get_study_sessions(user_id)
+def get_total_sessions(sessions):
 
     return len(sessions)
 
@@ -38,9 +36,7 @@ def get_average_focus(user_id):
     return avg_focus
 
 
-def get_most_studied_subject(user_id):
-    sessions = get_study_sessions(user_id)
-
+def get_most_studied_subject(sessions):
     subject_minutes = {}
 
     top_subject = None
@@ -63,9 +59,7 @@ def get_most_studied_subject(user_id):
             "minutes": top_subject_minutes}
 
 
-def get_sessions_by_subject(user_id, subject):
-    sessions = get_study_sessions(user_id)
-
+def get_sessions_by_subject(sessions, subject):
     subject_sessions = []
 
     for session in sessions:
@@ -77,12 +71,10 @@ def get_sessions_by_subject(user_id, subject):
     return subject_sessions
 
 
-def get_minutes_for_subject(user_id, subject):
-    sessions = get_study_sessions(user_id)
-
+def get_minutes_for_subject(sessions, subject):
     minutes_for_subject = 0
 
-    subject_sessions = get_sessions_by_subject(user_id, subject)
+    subject_sessions = get_sessions_by_subject(sessions, subject)
 
     for session in subject_sessions:
         minutes_for_subject += session["minutes"]
@@ -131,10 +123,8 @@ def get_weak_subjects(user_id):
     return weakness_exams[:3]
 
 
-def get_avg_rating(user_id):
-    sessions = get_study_sessions(user_id)
-
-    if get_total_sessions(user_id) == 0:
+def get_avg_rating(sessions):
+    if get_total_sessions(sessions) == 0:
         return 0
 
     total_rating = 0
@@ -142,14 +132,12 @@ def get_avg_rating(user_id):
     for session in sessions:
         total_rating += session["rating"]
 
-    avg_rating = round(total_rating / get_total_sessions(user_id), 2)
+    avg_rating = round(total_rating / get_total_sessions(sessions), 2)
 
     return avg_rating
 
 
-def get_weekly_sessions(user_id):
-    sessions = get_study_sessions(user_id)
-
+def get_weekly_sessions(sessions):
     today = datetime.today().date()
 
     count = 0
@@ -164,9 +152,7 @@ def get_weekly_sessions(user_id):
     return count
 
 
-def get_weekly_minutes(user_id):
-    sessions = get_study_sessions(user_id)
-
+def get_weekly_minutes(sessions):
     today = datetime.today().date()
 
     minutes = 0
@@ -192,9 +178,7 @@ def get_avg_session_length(user_id):
     return avg_session_length
 
 
-def get_productive_weekday(user_id):
-    sessions = get_study_sessions(user_id)
-
+def get_productive_weekday(sessions):
     days_minutes = {
         "Monday": 0,
         "Tuesday": 0,
@@ -227,9 +211,7 @@ def get_productive_weekday(user_id):
     }
 
 
-def get_unique_days(user_id):
-    sessions = get_study_sessions(user_id)
-
+def get_unique_days(sessions):
     days = set()
 
     for session in sessions:
@@ -293,9 +275,7 @@ def get_performance(user_id):
     }
 
 
-def get_weekly_minutes_graph(user_id):
-    sessions = get_study_sessions(user_id)
-
+def get_weekly_minutes_graph(sessions):
     weekdays = [
         "Mon",
         "Tue",
@@ -357,10 +337,7 @@ def get_subject_consistency(user_id, subject, days=14):
     return len(study_days) / days
 
 
-def get_subject_distribution(user_id):
-
-    sessions = get_study_sessions(user_id)
-
+def get_subject_distribution(sessions):
     distribution = {}
 
     for session in sessions:

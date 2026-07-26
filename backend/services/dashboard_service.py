@@ -22,24 +22,26 @@ from .recommendation_services import get_ranked_exams
 
 
 def get_dashboard_data(user_id, study_time):
+    sessions = get_study_sessions(user_id)
+
     exams = get_ranked_exams(user_id)
 
-    total_study_minutes = get_total_study_minutes(user_id)
-    total_sessions = get_total_sessions(user_id)
+    total_study_minutes = get_total_study_minutes(sessions)
+    total_sessions = get_total_sessions(sessions)
     current_streak = calculate_streak(user_id)
-    unique_study_days = get_unique_days(user_id)
-    weekly_sessions = get_weekly_sessions(user_id)
-    weekly_minutes = get_weekly_minutes(user_id)
-    avg_focus = get_average_focus(user_id)
-    avg_rating = get_avg_rating(user_id)
-    avg_session_length = get_avg_session_length(user_id)
-    most_studied_subject = get_most_studied_subject(user_id)
-    productive_weekday = get_productive_weekday(user_id)
+    unique_study_days = get_unique_days(sessions)
+    weekly_sessions = get_weekly_sessions(sessions)
+    weekly_minutes = get_weekly_minutes(sessions)
+    avg_focus = get_average_focus(sessions)
+    avg_rating = get_avg_rating(sessions)
+    avg_session_length = get_avg_session_length(sessions)
+    most_studied_subject = get_most_studied_subject(sessions)
+    productive_weekday = get_productive_weekday(sessions)
     weak_subjects = get_weak_subjects(user_id)
     daily_plan = generate_daily_plan(exams, study_time)
     exams_readiness = get_all_exam_readiness(user_id)
-    weekly_graph = get_weekly_minutes_graph(user_id)
-    subject_distribution = get_subject_distribution(user_id)
+    weekly_graph = get_weekly_minutes_graph(sessions)
+    subject_distribution = get_subject_distribution(sessions)
     performance = get_performance(user_id)
 
     dashboard_data = {
