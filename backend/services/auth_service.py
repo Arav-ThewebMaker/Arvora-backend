@@ -1,4 +1,4 @@
-from ...db_pool import pool
+from db_pool import pool
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from .jwt_service import create_access_token
@@ -9,34 +9,31 @@ ph = PasswordHasher()
 def register_user(username, password):
 
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor() as cur:
 
-    cur.execute(
-        "SELECT id FROM users WHERE username = %s",
-        (username,)
-    )
+            cur.execute(
+                "SELECT id FROM users WHERE username = %s",
+                (username,)
+            )
 
-    existing_user = cur.fetchone()
+            existing_user = cur.fetchone()
 
-    if existing_user:
-        cur.close()
-        conn.close()
-        return {
-            "status": "error",
-            "message": "Username already exists"
-        }
+            if existing_user:
+                cur.close()
+                conn.close()
+                return {
+                    "status": "error",
+                    "message": "Username already exists"
+                }
 
-    password_hash = ph.hash(password)
+            password_hash = ph.hash(password)
 
-    cur.execute("""
-        INSERT INTO users (username, password_hash, role)
-        VALUES (%s, %s, %s)
-    """, (username, password_hash, "student"))
+            cur.execute("""
+                INSERT INTO users (username, password_hash, role)
+                VALUES (%s, %s, %s)
+            """, (username, password_hash, "student"))
 
-    conn.commit()
-
-    cur.close()
-    conn.close()
+            conn.commit()
 
     return {
         "status": "success"

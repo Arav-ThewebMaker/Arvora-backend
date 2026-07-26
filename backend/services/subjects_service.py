@@ -1,4 +1,4 @@
-from ...db_pool import pool
+from db_pool import pool
 
 
 def add_subject(user_id, name, priority):
@@ -17,13 +17,13 @@ def add_subject(user_id, name, priority):
 
 def get_subjects(user_id):
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor() as cur:
 
-        cur.execute("""
-        SELECT * FROM subjects
-        WHERE user_id = %s         
-        """, (user_id, ))
-        result = cur.fetchall()
+            cur.execute("""can ew
+            SELECT * FROM subjects
+            WHERE user_id = %s         
+            """, (user_id, ))
+            result = cur.fetchall()
 
     return [
         {"id": r[0],

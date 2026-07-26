@@ -1,4 +1,4 @@
-from ...db_pool import pool
+from db_pool import pool
 
 
 def record_study_session(user_id, subject, date, minutes, focus, study_method, rating, chapter_name=None):
@@ -60,20 +60,20 @@ def delete_study_session(session_id, user_id):
 
 def update_study_session(session_id, user_id, subject, date, study_time, focus, method, rating, chapter_name):
     with pool.connection() as conn:
-        cur = conn.cursor()
+        with conn.cursor() as cur:
 
-        cur.execute("""
-            UPDATE study_sessions
-            SET subject = %s,
-                date = %s,
-                minutes = %s,
-                focus = %s,
-                method = %s,
-                rating = %s,
-                chapter_name = %s
-            WHERE id = %s AND user_id = %s
-        """, (subject, date, study_time, focus, method, rating, chapter_name, session_id, user_id))
+            cur.execute("""
+                UPDATE study_sessions
+                SET subject = %s,
+                    date = %s,
+                    minutes = %s,
+                    focus = %s,
+                    method = %s,
+                    rating = %s,
+                    chapter_name = %s
+                WHERE id = %s AND user_id = %s
+            """, (subject, date, study_time, focus, method, rating, chapter_name, session_id, user_id))
 
-        conn.commit()
+            conn.commit()
 
     return {"status": "updated"}

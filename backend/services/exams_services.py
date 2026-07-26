@@ -1,4 +1,4 @@
-from ...db_pool import pool
+from db_pool import pool
 from datetime import datetime
 
 
@@ -20,32 +20,31 @@ def add_exam(user_id, subject, date, target_percentage, current_percentage, impo
         }
 
     with pool.connection() as conn:
-        cur = conn.cursor()
-        cur = conn.cursor()
+        with conn.cursor() as cur:
 
-        if importance is None or importance == "":
-            importance = 3
+            if importance is None or importance == "":
+                importance = 3
 
-        cur.execute("""
-            INSERT INTO exams (
+            cur.execute("""
+                INSERT INTO exams (
+                    user_id,
+                    subject,
+                    date,
+                    target_percentage,
+                    current_percentage,
+                    importance
+                )
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
                 user_id,
                 subject,
                 date,
                 target_percentage,
                 current_percentage,
                 importance
-            )
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (
-            user_id,
-            subject,
-            date,
-            target_percentage,
-            current_percentage,
-            importance
-        ))
+            ))
 
-        conn.commit()
+            conn.commit()
 
     return {
         "status": "success"
