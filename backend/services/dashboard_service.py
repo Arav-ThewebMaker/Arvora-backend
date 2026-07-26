@@ -24,6 +24,10 @@ from .recommendation_services import get_ranked_exams
 def get_dashboard_data(user_id, study_time):
     sessions = get_study_sessions(user_id)
 
+    from .progress_service import get_subject_stats
+
+    subject_stats = get_subject_stats(sessions)
+
     exams = get_ranked_exams(user_id)
 
     total_study_minutes = get_total_study_minutes(sessions)
@@ -37,12 +41,19 @@ def get_dashboard_data(user_id, study_time):
     avg_session_length = get_avg_session_length(sessions)
     most_studied_subject = get_most_studied_subject(sessions)
     productive_weekday = get_productive_weekday(sessions)
-    weak_subjects = get_weak_subjects(user_id)
+    weak_subjects = get_weak_subjects(user_id, subject_stats)
     daily_plan = generate_daily_plan(exams, study_time)
-    exams_readiness = get_all_exam_readiness(user_id)
+    exams_readiness = get_all_exam_readiness(
+        user_id,
+        subject_stats
+    )
     weekly_graph = get_weekly_minutes_graph(sessions)
     subject_distribution = get_subject_distribution(sessions)
-    performance = get_performance(sessions, user_id)
+    performance = get_performance(
+        sessions,
+        exams_readiness,
+        user_id
+    )
 
     dashboard_data = {
         # Overall statistics

@@ -19,6 +19,41 @@ def get_total_sessions(sessions):
     return len(sessions)
 
 
+def get_subject_stats(sessions):
+    from datetime import datetime, timedelta
+
+    today = datetime.today().date()
+    start_date = today - timedelta(days=13)
+
+    stats = {}
+
+    for session in sessions:
+
+        subject = session["subject"]
+
+        if subject not in stats:
+            stats[subject] = {
+                "minutes": 0,
+                "focus_total": 0,
+                "focus_count": 0,
+                "days": set()
+            }
+
+        stats[subject]["minutes"] += session["minutes"]
+        stats[subject]["focus_total"] += session["focus"]
+        stats[subject]["focus_count"] += 1
+
+        session_date = datetime.strptime(
+            session["date"],
+            "%Y-%m-%d"
+        ).date()
+
+        if session_date >= start_date:
+            stats[subject]["days"].add(session_date)
+
+    return stats
+
+
 def get_average_focus(sessions):
     if len(sessions) == 0:
         return 0
@@ -99,9 +134,11 @@ def get_avg_focus_for_subject(sessions, subject):
     )
 
 
-def get_weak_subjects(user_id):
+def get_weak_subjects(user_id, subject_stats):
 
-    from .exam_readiness_service import get_exam_readiness
+    from .exam_readiness_service import (
+        get_exam_readiness
+    )
 
     exams = get_exams(user_id)
 
@@ -112,7 +149,7 @@ def get_weak_subjects(user_id):
         subject = exam["subject"]
 
         readiness = get_exam_readiness(
-            user_id,
+            subject_stats,
             exam
         )
 
@@ -133,7 +170,7 @@ def get_weak_subjects(user_id):
         result.append({
             "subject": subject,
             "readiness": readiness,
-            "weakness": round(100-readiness, 2)
+            "weakness": round(100 - readiness, 2)
         })
 
     result.sort(
@@ -243,27 +280,25 @@ def get_unique_days(sessions):
     return len(days)
 
 
-def get_performance(sessions, user_id):
-
-    from .exam_readiness_service import get_all_exam_readiness
+def get_performance(sessions, exams_readiness, user_id):
 
     avg_focus = get_average_focus(sessions)
     avg_rating = get_avg_rating(sessions)
     weekly_minutes = get_weekly_minutes(sessions)
     streak = calculate_streak(user_id)
 
-    exams = get_all_exam_readiness(user_id)
-
-    if len(exams) == 0:
+    if len(exams_readiness) == 0:
         average_readiness = 0
+
     else:
         total = 0
 
-        for exam in exams:
+        for exam in exams_readiness:
             total += exam["readiness"]
 
         average_readiness = round(
-            total / len(exams)
+            total / len(exams_readiness),
+            2
         )
 
     focus_score = avg_focus * 10

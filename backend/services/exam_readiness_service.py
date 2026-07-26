@@ -1,7 +1,5 @@
 from .progress_service import (
-    get_minutes_for_subject,
-    get_avg_focus_for_subject,
-    get_subject_consistency,
+    get_subject_stats
 )
 
 from .study_sessions_service import get_study_sessions
@@ -17,26 +15,25 @@ def get_required_minutes(target_percentage):
     return round(400 + 2700 * (x ** 1.4))
 
 
-def get_exam_readiness(user_id, exam):
+def get_exam_readiness(stats, exam):
 
     subject = exam["subject"]
 
-    sessions = get_study_sessions(user_id)
+    subject_stats = stats.get(subject)
 
-    total_minutes = get_minutes_for_subject(
-        sessions,
-        subject
-    )
+    if subject_stats:
+        total_minutes = subject_stats["minutes"]
 
-    avg_focus = get_avg_focus_for_subject(
-        sessions,
-        subject
-    )
+        avg_focus = (
+            subject_stats["focus_total"] /
+            subject_stats["focus_count"]
+        )
 
-    consistency = get_subject_consistency(
-        sessions,
-        subject
-    )
+        consistency = len(subject_stats["days"]) / 14
+    else:
+        total_minutes = 0
+        avg_focus = 0
+        consistency = 0
 
     required_minutes = get_required_minutes(
         exam["target_percentage"]
@@ -61,20 +58,23 @@ def get_exam_readiness(user_id, exam):
     return readiness
 
 
-def get_all_exam_readiness(user_id):
+def get_all_exam_readiness(user_id, subject_stats):
 
     exams = get_exams(user_id)
 
     exams_readiness = []
 
     for exam in exams:
+
         exams_readiness.append({
+
             "subject": exam["subject"],
             "date": exam["date"],
             "readiness": get_exam_readiness(
-                user_id,
+                subject_stats,
                 exam
             )
+
         })
 
     return exams_readiness
