@@ -33,7 +33,7 @@ def get_exam_readiness(user_id, exam):
     )
 
     consistency = get_subject_consistency(
-        user_id,
+        sessions,
         subject
     )
 

@@ -1,4 +1,3 @@
-from .study_sessions_service import get_study_sessions
 from .exams_services import get_exams
 from .streaks_service import calculate_streak
 from datetime import datetime, timedelta
@@ -81,7 +80,6 @@ def get_minutes_for_subject(sessions, subject):
 
 
 def get_avg_focus_for_subject(sessions, subject):
-
     subject_sessions = get_sessions_by_subject(
         sessions,
         subject
@@ -345,11 +343,7 @@ def get_weekly_minutes_graph(sessions):
 
 
 def get_subject_consistency(sessions, subject, days=14):
-
-    subject_sessions = get_sessions_by_subject(
-        sessions,
-        subject
-    )
+    subject_sessions = get_sessions_by_subject(sessions, subject)
 
     today = datetime.today().date()
 
