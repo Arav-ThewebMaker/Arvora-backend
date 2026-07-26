@@ -1,10 +1,13 @@
 def merge_exam_subjects(exams):
+
     merged = {}
 
     for exam in exams:
+
         subject = exam["subject"]
 
         if subject not in merged:
+
             merged[subject] = {
                 "subject": subject,
                 "urgency": exam["urgency"],
@@ -12,13 +15,17 @@ def merge_exam_subjects(exams):
                 "exams": []
             }
 
-        # Add all exams of same subject together
-        merged[subject]["minutes"] += 30
+        merged[subject]["minutes"] += exam.get(
+            "minutes",
+            30
+        )
+
         merged[subject]["exams"].append(exam)
 
-        # Keep highest urgency among same subject exams
-        if exam["urgency"] > merged[subject]["urgency"]:
-            merged[subject]["urgency"] = exam["urgency"]
+        merged[subject]["urgency"] = max(
+            merged[subject]["urgency"],
+            exam["urgency"]
+        )
 
     return list(merged.values())
 

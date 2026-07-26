@@ -29,7 +29,7 @@ def get_average_focus(sessions):
     for session in sessions:
         total_focus += session["focus"]
 
-    avg_focus = round(total_focus/get_total_sessions(sessions), 2)
+    avg_focus = round(total_focus / len(sessions), 2)
 
     return avg_focus
 
@@ -122,15 +122,15 @@ def get_weak_subjects(user_id):
 
     for subject, values in subjects.items():
 
-        avg = round(
+        readiness = round(
             sum(values) / len(values),
             2
         )
 
         result.append({
             "subject": subject,
-            "readiness": avg,
-            "weakness": round(100 - avg, 2)
+            "readiness": readiness,
+            "weakness": round(100-readiness, 2)
         })
 
     result.sort(
