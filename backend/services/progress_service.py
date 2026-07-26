@@ -20,10 +20,8 @@ def get_total_sessions(sessions):
     return len(sessions)
 
 
-def get_average_focus(user_id):
-    sessions = get_study_sessions(user_id)
-
-    if get_total_sessions(user_id) == 0:
+def get_average_focus(sessions):
+    if len(sessions) == 0:
         return 0
 
     total_focus = 0
@@ -99,28 +97,48 @@ def get_avg_focus_for_subject(user_id, subject):
 
 
 def get_weak_subjects(user_id):
+
     from .exam_readiness_service import get_exam_readiness
 
     exams = get_exams(user_id)
 
-    weakness_exams = []
+    subjects = {}
 
     for exam in exams:
-        exam_readiness = get_exam_readiness(user_id, exam)
 
-        weakness = 100 - exam_readiness
+        subject = exam["subject"]
 
-        result = {
-            "subject": exam["subject"],
-            "weakness": weakness,
-            "readiness": exam_readiness
-        }
-        weakness_exams.append(result)
+        readiness = get_exam_readiness(
+            user_id,
+            exam
+        )
 
-    weakness_exams.sort(
-        key=lambda x: x["weakness"], reverse=True)
+        if subject not in subjects:
+            subjects[subject] = []
 
-    return weakness_exams[:3]
+        subjects[subject].append(readiness)
+
+    result = []
+
+    for subject, values in subjects.items():
+
+        avg = round(
+            sum(values) / len(values),
+            2
+        )
+
+        result.append({
+            "subject": subject,
+            "readiness": avg,
+            "weakness": round(100 - avg, 2)
+        })
+
+    result.sort(
+        key=lambda x: x["weakness"],
+        reverse=True
+    )
+
+    return result[:3]
 
 
 def get_avg_rating(sessions):
@@ -167,15 +185,17 @@ def get_weekly_minutes(sessions):
     return minutes
 
 
-def get_avg_session_length(user_id):
+def get_avg_session_length(sessions):
 
-    if get_total_sessions(user_id) == 0:
+    if len(sessions) == 0:
         return 0
 
-    avg_session_length = round(get_total_study_minutes(
-        user_id) / get_total_sessions(user_id))
+    total = 0
 
-    return avg_session_length
+    for session in sessions:
+        total += session["minutes"]
+
+    return round(total / len(sessions))
 
 
 def get_productive_weekday(sessions):
@@ -220,16 +240,16 @@ def get_unique_days(sessions):
     return len(days)
 
 
-def get_performance(user_id):
+def get_performance(sessions, user_id):
+
     from .exam_readiness_service import get_all_exam_readiness
 
-    avg_focus = get_average_focus(user_id)  # 1-10
-    avg_rating = get_avg_rating(user_id)  # 1-5
-    weekly_minutes = get_weekly_minutes(user_id)  # 0-600
-    streak = calculate_streak(user_id)  # 1-14
-    exams = get_all_exam_readiness(user_id)
+    avg_focus = get_average_focus(sessions)
+    avg_rating = get_avg_rating(sessions)
+    weekly_minutes = get_weekly_minutes(sessions)
+    streak = calculate_streak(user_id)
 
-    average_readiness = 0
+    exams = get_all_exam_readiness(user_id)
 
     if len(exams) == 0:
         average_readiness = 0
@@ -239,7 +259,9 @@ def get_performance(user_id):
         for exam in exams:
             total += exam["readiness"]
 
-        average_readiness = round(total / len(exams))
+        average_readiness = round(
+            total / len(exams)
+        )
 
     focus_score = avg_focus * 10
     rating_score = avg_rating * 20

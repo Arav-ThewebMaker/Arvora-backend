@@ -42,7 +42,7 @@ def get_dashboard_data(user_id, study_time):
     exams_readiness = get_all_exam_readiness(user_id)
     weekly_graph = get_weekly_minutes_graph(sessions)
     subject_distribution = get_subject_distribution(sessions)
-    performance = get_performance(user_id)
+    performance = get_performance(sessions, user_id)
 
     dashboard_data = {
         # Overall statistics
