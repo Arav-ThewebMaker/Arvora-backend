@@ -14,6 +14,7 @@ from .streaks_service import calculate_streak
 from .exam_readiness_service import get_all_exam_readiness
 from .daily_plan_service import generate_daily_plan
 from .recommendation_services import get_ranked_exams
+from .exams_services import get_exams
 from datetime import datetime
 import time
 
@@ -44,12 +45,14 @@ def get_dashboard_data(user_id, study_time):
         )
 
         exams_future = executor.submit(
-            get_ranked_exams,
+            get_exams,
             user_id
         )
 
         sessions = sessions_future.result()
-        ranked_exams = exams_future.result()
+        exams = exams_future.result()
+
+    ranked_exams = get_ranked_exams(exams)
 
     step = checkpoint("Fetch sessions + exams", step)
 
