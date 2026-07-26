@@ -19,7 +19,6 @@ def get_dashboard_data(user_id, study_time):
     from .progress_service import get_subject_stats
 
     subject_stats = get_subject_stats(sessions)
-    stats = calculate_dashboard_stats(sessions)
 
     with ThreadPoolExecutor() as executor:
         sessions_future = executor.submit(get_study_sessions, user_id)
@@ -33,6 +32,8 @@ def get_dashboard_data(user_id, study_time):
             session["date"],
             "%Y-%m-%d"
         ).date()
+
+    stats = calculate_dashboard_stats(sessions)
 
     ranked_exams = get_ranked_exams(exams)
 
