@@ -7,10 +7,11 @@ def add_subject(user_id, name, priority):
 
     cur.execute("""
     INSERT INTO subjects (user_id, name, priority)
-    VALUES (?, ?, ?)     
+    VALUES (%s, %s, %s)     
     """, (user_id, name, priority))
 
     conn.commit()
+    cur.close()
     conn.close()
 
     return {"status": "success"}
@@ -22,10 +23,11 @@ def get_subjects(user_id):
 
     cur.execute("""
     SELECT * FROM subjects
-    WHERE user_id = ?         
+    WHERE user_id = %s         
     """, (user_id, ))
     result = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     return [

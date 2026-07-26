@@ -38,8 +38,9 @@ def get_ranked_exams(user_id):
     conn = connect()
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM exams WHERE user_id = ?", (user_id, ))
+    cur.execute("SELECT * FROM exams WHERE user_id = %s", (user_id, ))
     rows = cur.fetchall()
+    cur.close()
     conn.close()
 
     exams = []
