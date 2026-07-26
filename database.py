@@ -1,6 +1,9 @@
-import sqlite3
+import os
+import psycopg
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 def connect():
-    conn = sqlite3.connect("data/arvora.db", timeout=10)
-    return conn
+    return psycopg.connect(DATABASE_URL)
