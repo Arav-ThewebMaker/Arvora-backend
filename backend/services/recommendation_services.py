@@ -37,29 +37,10 @@ def calculate_exam_urgency(exam):
     return urgency
 
 
-def get_ranked_exams(user_id):
-    conn = connect()
-    cur = conn.cursor()
+def get_ranked_exams(exams):
 
-    cur.execute("SELECT * FROM exams WHERE user_id = %s", (user_id, ))
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    exams = []
-    for r in rows:
-        exam = {
-            "id": r[0],
-            "user_id": r[1],
-            "subject": r[2],
-            "date": r[3],
-            "target_percentage": r[4],
-            "current_percentage": r[5],
-            "importance": r[6]
-        }
-
+    for exam in exams:
         exam["urgency"] = calculate_exam_urgency(exam)
-        exams.append(exam)
 
     exams.sort(key=lambda x: x["urgency"], reverse=True)
 

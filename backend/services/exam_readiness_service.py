@@ -58,9 +58,7 @@ def get_exam_readiness(stats, exam):
     return readiness
 
 
-def get_all_exam_readiness(user_id, subject_stats):
-
-    exams = get_exams(user_id)
+def get_all_exam_readiness(exams, subject_stats):
 
     exams_readiness = []
 

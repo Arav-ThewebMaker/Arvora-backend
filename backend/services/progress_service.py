@@ -8,7 +8,6 @@ def get_total_study_minutes(sessions):
     total_minutes = 0
 
     for session in sessions:
-        print(session)
         total_minutes += session["minutes"]
 
     return total_minutes
@@ -134,13 +133,11 @@ def get_avg_focus_for_subject(sessions, subject):
     )
 
 
-def get_weak_subjects(user_id, subject_stats):
+def get_weak_subjects(exams, subject_stats):
 
     from .exam_readiness_service import (
         get_exam_readiness
     )
-
-    exams = get_exams(user_id)
 
     subjects = {}
 

@@ -2,9 +2,7 @@ from .study_sessions_service import get_study_sessions
 from datetime import datetime, timedelta
 
 
-def calculate_streak(user_id):
-    sessions = get_study_sessions(user_id)
-
+def calculate_streak(sessions):
     if not sessions:
         return 0
 

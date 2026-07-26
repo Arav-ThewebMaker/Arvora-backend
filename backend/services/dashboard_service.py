@@ -19,6 +19,7 @@ from .streaks_service import calculate_streak
 from .exam_readiness_service import get_all_exam_readiness
 from .daily_plan_service import generate_daily_plan
 from .recommendation_services import get_ranked_exams
+from .exams_services import get_exams
 
 
 def get_dashboard_data(user_id, study_time):
@@ -28,11 +29,14 @@ def get_dashboard_data(user_id, study_time):
 
     subject_stats = get_subject_stats(sessions)
 
-    exams = get_ranked_exams(user_id)
+    sessions = get_study_sessions(user_id)
+
+    exams = get_exams(user_id)
+    ranked_exams = get_ranked_exams(exams)
 
     total_study_minutes = get_total_study_minutes(sessions)
     total_sessions = get_total_sessions(sessions)
-    current_streak = calculate_streak(user_id)
+    current_streak = calculate_streak(sessions)
     unique_study_days = get_unique_days(sessions)
     weekly_sessions = get_weekly_sessions(sessions)
     weekly_minutes = get_weekly_minutes(sessions)
@@ -41,10 +45,16 @@ def get_dashboard_data(user_id, study_time):
     avg_session_length = get_avg_session_length(sessions)
     most_studied_subject = get_most_studied_subject(sessions)
     productive_weekday = get_productive_weekday(sessions)
-    weak_subjects = get_weak_subjects(user_id, subject_stats)
-    daily_plan = generate_daily_plan(exams, study_time)
+    weak_subjects = get_weak_subjects(
+        ranked_exams,
+        subject_stats
+    )
+    daily_plan = generate_daily_plan(
+        ranked_exams,
+        study_time
+    )
     exams_readiness = get_all_exam_readiness(
-        user_id,
+        ranked_exams,
         subject_stats
     )
     weekly_graph = get_weekly_minutes_graph(sessions)
@@ -80,7 +90,7 @@ def get_dashboard_data(user_id, study_time):
         "exams_readiness": exams_readiness,
 
         # Dashboard widgets
-        "exams": exams,
+        "exams": ranked_exams,
         "daily_plan": daily_plan,
         "weekly_graph": weekly_graph,
         "subject_distribution": subject_distribution,
