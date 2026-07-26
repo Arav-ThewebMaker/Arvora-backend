@@ -1,3 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+import time
+
 from .progress_service import (
     get_weak_subjects,
     get_performance,
@@ -8,15 +12,12 @@ from .dashboard_cache import (
     set_cached_dashboard
 )
 from .dashboard_stats_service import calculate_dashboard_stats
-from concurrent.futures import ThreadPoolExecutor
 from .study_sessions_service import get_study_sessions
 from .streaks_service import calculate_streak
 from .exam_readiness_service import get_all_exam_readiness
 from .daily_plan_service import generate_daily_plan
 from .recommendation_services import get_ranked_exams
 from .exams_services import get_exams
-from datetime import datetime
-import time
 
 
 def get_dashboard_data(user_id, study_time):
@@ -25,7 +26,7 @@ def get_dashboard_data(user_id, study_time):
 
     def checkpoint(name, start):
         now = time.perf_counter()
-        print(f"{name:<30}: {now-start:.4f}s")
+        print(f"{name:<35}: {now-start:.4f}s")
         return now
 
     step = total_start
@@ -65,74 +66,124 @@ def get_dashboard_data(user_id, study_time):
     step = checkpoint("Parse dates", step)
 
     subject_stats = get_subject_stats(sessions)
+
     step = checkpoint("Subject stats", step)
 
-    stats = calculate_dashboard_stats(sessions)
-    step = checkpoint("Dashboard stats", step)
+    with ThreadPoolExecutor(max_workers=6) as executor:
 
-    current_streak = calculate_streak(sessions)
-    step = checkpoint("Current streak", step)
+        dashboard_future = executor.submit(
+            calculate_dashboard_stats,
+            sessions
+        )
 
-    weak_subjects = get_weak_subjects(
-        ranked_exams,
-        subject_stats
-    )
-    step = checkpoint("Weak subjects", step)
+        streak_future = executor.submit(
+            calculate_streak,
+            sessions
+        )
 
-    daily_plan = generate_daily_plan(
-        ranked_exams,
-        study_time
-    )
-    step = checkpoint("Daily plan", step)
+        readiness_future = executor.submit(
+            get_all_exam_readiness,
+            ranked_exams,
+            subject_stats
+        )
 
-    exams_readiness = get_all_exam_readiness(
-        ranked_exams,
-        subject_stats
-    )
-    step = checkpoint("Exam readiness", step)
+        weak_future = executor.submit(
+            get_weak_subjects,
+            ranked_exams,
+            subject_stats
+        )
+
+        daily_future = executor.submit(
+            generate_daily_plan,
+            ranked_exams,
+            study_time
+        )
+
+        stats = dashboard_future.result()
+        current_streak = streak_future.result()
+        exams_readiness = readiness_future.result()
+        weak_subjects = weak_future.result()
+        daily_plan = daily_future.result()
+
+    step = checkpoint("Parallel calculations", step)
 
     performance = get_performance(
         sessions,
         exams_readiness,
         current_streak
     )
+
     step = checkpoint("Performance", step)
 
     dashboard_data = {
-        "total_study_minutes": stats["total_study_minutes"],
-        "total_sessions": stats["total_sessions"],
-        "unique_study_days": stats["unique_study_days"],
-        "current_streak": current_streak,
 
-        "weekly_sessions": stats["weekly_sessions"],
-        "weekly_minutes": stats["weekly_minutes"],
+        "total_study_minutes":
+            stats["total_study_minutes"],
 
-        "average_focus": stats["average_focus"],
-        "average_rating": stats["average_rating"],
-        "average_session_length": stats["average_session_length"],
+        "total_sessions":
+            stats["total_sessions"],
 
-        "most_studied_subject": stats["most_studied_subject"],
-        "productive_weekday": stats["productive_weekday"],
+        "unique_study_days":
+            stats["unique_study_days"],
 
-        "weak_subjects": weak_subjects,
-        "exams_readiness": exams_readiness,
+        "current_streak":
+            current_streak,
 
-        "exams": ranked_exams,
-        "daily_plan": daily_plan,
-        "weekly_graph": stats["weekly_graph"],
-        "subject_distribution": stats["subject_distribution"],
+        "weekly_sessions":
+            stats["weekly_sessions"],
 
-        "performance_score": performance
+        "weekly_minutes":
+            stats["weekly_minutes"],
+
+        "average_focus":
+            stats["average_focus"],
+
+        "average_rating":
+            stats["average_rating"],
+
+        "average_session_length":
+            stats["average_session_length"],
+
+        "most_studied_subject":
+            stats["most_studied_subject"],
+
+        "productive_weekday":
+            stats["productive_weekday"],
+
+        "weak_subjects":
+            weak_subjects,
+
+        "exams_readiness":
+            exams_readiness,
+
+        "exams":
+            ranked_exams,
+
+        "daily_plan":
+            daily_plan,
+
+        "weekly_graph":
+            stats["weekly_graph"],
+
+        "subject_distribution":
+            stats["subject_distribution"],
+
+        "performance_score":
+            performance
     }
 
     set_cached_dashboard(
         user_id,
         dashboard_data
     )
+
     step = checkpoint("Cache save", step)
 
     print("=" * 60)
-    print(f"TOTAL DASHBOARD TIME: {time.perf_counter()-total_start:.4f}s")
+    print(
+        f"TOTAL DASHBOARD TIME: "
+        f"{time.perf_counter()-total_start:.4f}s"
+    )
     print("=" * 60)
 
     return dashboard_data
