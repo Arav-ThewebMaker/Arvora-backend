@@ -80,20 +80,25 @@ def get_minutes_for_subject(sessions, subject):
     return minutes_for_subject
 
 
-def get_avg_focus_for_subject(user_id, subject):
-    total_focus = 0
+def get_avg_focus_for_subject(sessions, subject):
 
-    subject_sessions = get_sessions_by_subject(user_id, subject)
+    subject_sessions = get_sessions_by_subject(
+        sessions,
+        subject
+    )
 
     if len(subject_sessions) == 0:
         return 0
 
+    total_focus = 0
+
     for session in subject_sessions:
         total_focus += session["focus"]
 
-    avg_focus = total_focus / len(subject_sessions)
-
-    return avg_focus
+    return round(
+        total_focus / len(subject_sessions),
+        2
+    )
 
 
 def get_weak_subjects(user_id):
@@ -339,15 +344,21 @@ def get_weekly_minutes_graph(sessions):
     return result
 
 
-def get_subject_consistency(user_id, subject, days=14):
-    subject_sessions = get_sessions_by_subject(user_id, subject)
+def get_subject_consistency(sessions, subject, days=14):
+
+    subject_sessions = get_sessions_by_subject(
+        sessions,
+        subject
+    )
 
     today = datetime.today().date()
-    start_date = today - timedelta(days=days - 1)
+
+    start_date = today - timedelta(days=days-1)
 
     study_days = set()
 
     for session in subject_sessions:
+
         session_date = datetime.strptime(
             session["date"],
             "%Y-%m-%d"
@@ -356,7 +367,10 @@ def get_subject_consistency(user_id, subject, days=14):
         if session_date >= start_date:
             study_days.add(session_date)
 
-    return len(study_days) / days
+    return round(
+        len(study_days) / days,
+        2
+    )
 
 
 def get_subject_distribution(sessions):

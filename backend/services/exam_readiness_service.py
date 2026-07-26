@@ -1,7 +1,8 @@
 from .progress_service import (
     get_minutes_for_subject,
     get_avg_focus_for_subject,
-    get_subject_consistency
+    get_subject_consistency,
+    get_study_sessions
 )
 from .exams_services import get_exams
 
@@ -19,8 +20,10 @@ def get_exam_readiness(user_id, exam):
 
     subject = exam["subject"]
 
+    sessions = get_study_sessions(user_id)
+
     total_minutes = get_minutes_for_subject(
-        user_id,
+        sessions,
         subject
     )
 
