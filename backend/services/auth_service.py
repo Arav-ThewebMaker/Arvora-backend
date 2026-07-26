@@ -1,4 +1,4 @@
-from database import connect
+from ...db_pool import pool
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from .jwt_service import create_access_token
@@ -8,8 +8,8 @@ ph = PasswordHasher()
 
 def register_user(username, password):
 
-    conn = connect()
-    cur = conn.cursor()
+    with pool.connection() as conn:
+        cur = conn.cursor()
 
     cur.execute(
         "SELECT id FROM users WHERE username = %s",
@@ -45,19 +45,16 @@ def register_user(username, password):
 
 def login_user(username, password):
 
-    conn = connect()
-    cur = conn.cursor()
+    with pool.connection() as conn:
+        cur = conn.cursor()
 
-    cur.execute("""
-        SELECT id, username, password_hash
-        FROM users
-        WHERE username = %s
-    """, (username,))
+        cur.execute("""
+            SELECT id, username, password_hash
+            FROM users
+            WHERE username = %s
+        """, (username,))
 
-    user = cur.fetchone()
-
-    cur.close()
-    conn.close()
+        user = cur.fetchone()
 
     if not user:
         return {

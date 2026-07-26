@@ -1,4 +1,3 @@
-from database import connect
 from datetime import datetime
 
 

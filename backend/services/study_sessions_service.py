@@ -1,37 +1,33 @@
-from database import connect
+from ...db_pool import pool
 
 
 def record_study_session(user_id, subject, date, minutes, focus, study_method, rating, chapter_name=None):
-    conn = connect()
-    cur = conn.cursor()
+    with pool.connection() as conn:
+        cur = conn.cursor()
 
-    if not subject or subject.strip() == "":
-        return {
-            "status": "error",
-            "message": "Subject is required"
-        }
+        if not subject or subject.strip() == "":
+            return {
+                "status": "error",
+                "message": "Subject is required"
+            }
 
-    cur.execute("""
-        INSERT INTO study_sessions (user_id, subject, chapter_name, date, minutes, focus, method, rating)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)       
-    """, (user_id, subject, chapter_name, date, minutes, focus, study_method, rating))
+        cur.execute("""
+            INSERT INTO study_sessions (user_id, subject, chapter_name, date, minutes, focus, method, rating)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)       
+        """, (user_id, subject, chapter_name, date, minutes, focus, study_method, rating))
 
-    conn.commit()
-    cur.close()
-    conn.close()
+        conn.commit()
 
     return {"status": "success"}
 
 
 def get_study_sessions(user_id):
-    conn = connect()
-    cur = conn.cursor()
+    with pool.connection() as conn:
+        cur = conn.cursor()
 
-    cur.execute("SELECT * FROM study_sessions WHERE user_id = %s", (user_id, ))
-    result = cur.fetchall()
-
-    cur.close()
-    conn.close()
+        cur.execute(
+            "SELECT * FROM study_sessions WHERE user_id = %s", (user_id, ))
+        result = cur.fetchall()
 
     return [
         {"id": r[0],
@@ -48,40 +44,36 @@ def get_study_sessions(user_id):
 
 
 def delete_study_session(session_id, user_id):
-    conn = connect()
-    cur = conn.cursor()
+    with pool.connection() as conn:
+        cur = conn.cursor()
 
-    cur.execute("""
-        DELETE FROM study_sessions
-        WHERE id = %s AND user_id = %s
-    """, (session_id, user_id))
+        cur.execute("""
+            DELETE FROM study_sessions
+            WHERE id = %s AND user_id = %s
+        """, (session_id, user_id))
 
-    conn.commit()
-    cur.close()
-    conn.close()
+        conn.commit()
 
     return {"status": "deleted",
             "Rows deleted": cur.rowcount}
 
 
 def update_study_session(session_id, user_id, subject, date, study_time, focus, method, rating, chapter_name):
-    conn = connect()
-    cur = conn.cursor()
+    with pool.connection() as conn:
+        cur = conn.cursor()
 
-    cur.execute("""
-        UPDATE study_sessions
-        SET subject = %s,
-            date = %s,
-            minutes = %s,
-            focus = %s,
-            method = %s,
-            rating = %s,
-            chapter_name = %s
-        WHERE id = %s AND user_id = %s
-    """, (subject, date, study_time, focus, method, rating, chapter_name, session_id, user_id))
+        cur.execute("""
+            UPDATE study_sessions
+            SET subject = %s,
+                date = %s,
+                minutes = %s,
+                focus = %s,
+                method = %s,
+                rating = %s,
+                chapter_name = %s
+            WHERE id = %s AND user_id = %s
+        """, (subject, date, study_time, focus, method, rating, chapter_name, session_id, user_id))
 
-    conn.commit()
-    cur.close()
-    conn.close()
+        conn.commit()
 
     return {"status": "updated"}
