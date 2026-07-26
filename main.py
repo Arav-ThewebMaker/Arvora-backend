@@ -11,6 +11,7 @@ from backend.models.auth_models import UserLogin
 from backend.services.auth_service import register_user
 from backend.services.auth_service import login_user
 from backend.services.auth_dependency import get_current_user
+from backend.services.exams_services import get_exams
 
 
 app = FastAPI()
@@ -38,8 +39,8 @@ def return_dashboard_data(
 def fetch_exams(
     user=Depends(get_current_user)
 ):
-    user_id = user["user_id"]
-    return get_ranked_exams(user_id)
+    exams = get_exams(user["user_id"])
+    return get_ranked_exams(exams)
 
 
 @app.post("/exams")
