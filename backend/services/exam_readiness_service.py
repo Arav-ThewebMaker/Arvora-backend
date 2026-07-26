@@ -28,7 +28,7 @@ def get_exam_readiness(user_id, exam):
     )
 
     avg_focus = get_avg_focus_for_subject(
-        user_id,
+        sessions,
         subject
     )
 
