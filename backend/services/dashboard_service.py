@@ -1,19 +1,9 @@
 from .progress_service import (
-    get_total_study_minutes,
-    get_total_sessions,
-    get_average_focus,
-    get_avg_rating,
-    get_avg_session_length,
-    get_weekly_sessions,
-    get_weekly_minutes,
-    get_unique_days,
-    get_productive_weekday,
-    get_most_studied_subject,
     get_weak_subjects,
     get_performance,
-    get_weekly_minutes_graph,
-    get_subject_distribution
 )
+from .dashboard_stats_service import calculate_dashboard_stats
+from concurrent.futures import ThreadPoolExecutor
 from .study_sessions_service import get_study_sessions
 from .streaks_service import calculate_streak
 from .exam_readiness_service import get_all_exam_readiness
@@ -28,23 +18,18 @@ def get_dashboard_data(user_id, study_time):
     from .progress_service import get_subject_stats
 
     subject_stats = get_subject_stats(sessions)
+    stats = calculate_dashboard_stats(sessions)
 
-    sessions = get_study_sessions(user_id)
+    with ThreadPoolExecutor() as executor:
+        sessions_future = executor.submit(get_study_sessions, user_id)
+        exams_future = executor.submit(get_exams, user_id)
 
-    exams = get_exams(user_id)
+        sessions = sessions_future.result()
+        exams = exams_future.result()
+
     ranked_exams = get_ranked_exams(exams)
 
-    total_study_minutes = get_total_study_minutes(sessions)
-    total_sessions = get_total_sessions(sessions)
     current_streak = calculate_streak(sessions)
-    unique_study_days = get_unique_days(sessions)
-    weekly_sessions = get_weekly_sessions(sessions)
-    weekly_minutes = get_weekly_minutes(sessions)
-    avg_focus = get_average_focus(sessions)
-    avg_rating = get_avg_rating(sessions)
-    avg_session_length = get_avg_session_length(sessions)
-    most_studied_subject = get_most_studied_subject(sessions)
-    productive_weekday = get_productive_weekday(sessions)
     weak_subjects = get_weak_subjects(
         ranked_exams,
         subject_stats
@@ -57,13 +42,35 @@ def get_dashboard_data(user_id, study_time):
         ranked_exams,
         subject_stats
     )
-    weekly_graph = get_weekly_minutes_graph(sessions)
-    subject_distribution = get_subject_distribution(sessions)
     performance = get_performance(
         sessions,
         exams_readiness,
-        user_id
+        current_streak
     )
+
+    total_study_minutes = stats["total_study_minutes"]
+
+    total_sessions = stats["total_sessions"]
+
+    weekly_sessions = stats["weekly_sessions"]
+
+    weekly_minutes = stats["weekly_minutes"]
+
+    unique_study_days = stats["unique_study_days"]
+
+    avg_focus = stats["average_focus"]
+
+    avg_rating = stats["average_rating"]
+
+    avg_session_length = stats["average_session_length"]
+
+    most_studied_subject = stats["most_studied_subject"]
+
+    productive_weekday = stats["productive_weekday"]
+
+    weekly_graph = stats["weekly_graph"]
+
+    subject_distribution = stats["subject_distribution"]
 
     dashboard_data = {
         # Overall statistics

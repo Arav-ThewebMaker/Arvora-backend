@@ -277,12 +277,11 @@ def get_unique_days(sessions):
     return len(days)
 
 
-def get_performance(sessions, exams_readiness, user_id):
+def get_performance(sessions, exams_readiness, streak):
 
     avg_focus = get_average_focus(sessions)
     avg_rating = get_avg_rating(sessions)
     weekly_minutes = get_weekly_minutes(sessions)
-    streak = calculate_streak(sessions)
 
     if len(exams_readiness) == 0:
         average_readiness = 0
