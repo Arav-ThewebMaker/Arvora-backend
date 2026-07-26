@@ -14,7 +14,7 @@ def calculate_exam_urgency(exam):
     else:
         exam_date = exam["date"]
 
-    today = datetime.today().date
+    today = datetime.today().date()
 
     days_left = (exam_date - today).days
     if days_left < 0:
