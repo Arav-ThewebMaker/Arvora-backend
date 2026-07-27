@@ -18,6 +18,7 @@ from .exam_readiness_service import get_all_exam_readiness
 from .daily_plan_service import generate_daily_plan
 from .recommendation_services import get_ranked_exams
 from .exams_services import get_exams
+from .dashboard_queries_service import get_dashboard_stats
 
 
 def get_dashboard_data(user_id, study_time):
@@ -72,7 +73,7 @@ def get_dashboard_data(user_id, study_time):
     with ThreadPoolExecutor(max_workers=6) as executor:
 
         dashboard_future = executor.submit(
-            calculate_dashboard_stats,
+            get_dashboard_stats,
             sessions
         )
 
@@ -100,6 +101,8 @@ def get_dashboard_data(user_id, study_time):
         )
 
         stats = dashboard_future.result()
+        python_stats = calculate_dashboard_stats(sessions)
+
         current_streak = streak_future.result()
         exams_readiness = readiness_future.result()
         weak_subjects = weak_future.result()
@@ -129,12 +132,6 @@ def get_dashboard_data(user_id, study_time):
         "current_streak":
             current_streak,
 
-        "weekly_sessions":
-            stats["weekly_sessions"],
-
-        "weekly_minutes":
-            stats["weekly_minutes"],
-
         "average_focus":
             stats["average_focus"],
 
@@ -144,11 +141,23 @@ def get_dashboard_data(user_id, study_time):
         "average_session_length":
             stats["average_session_length"],
 
+        "weekly_sessions":
+            python_stats["weekly_sessions"],
+
+        "weekly_minutes":
+            python_stats["weekly_minutes"],
+
         "most_studied_subject":
-            stats["most_studied_subject"],
+            python_stats["most_studied_subject"],
 
         "productive_weekday":
-            stats["productive_weekday"],
+            python_stats["productive_weekday"],
+
+        "weekly_graph":
+            python_stats["weekly_graph"],
+
+        "subject_distribution":
+            python_stats["subject_distribution"],
 
         "weak_subjects":
             weak_subjects,
@@ -161,12 +170,6 @@ def get_dashboard_data(user_id, study_time):
 
         "daily_plan":
             daily_plan,
-
-        "weekly_graph":
-            stats["weekly_graph"],
-
-        "subject_distribution":
-            stats["subject_distribution"],
 
         "performance_score":
             performance
