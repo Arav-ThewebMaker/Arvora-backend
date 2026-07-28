@@ -74,7 +74,7 @@ def get_dashboard_data(user_id, study_time):
 
         dashboard_future = executor.submit(
             get_dashboard_stats,
-            sessions
+            user_id
         )
 
         streak_future = executor.submit(
@@ -101,7 +101,9 @@ def get_dashboard_data(user_id, study_time):
         )
 
         stats = dashboard_future.result()
-        python_stats = calculate_dashboard_stats(sessions)
+        python_stats = calculate_dashboard_stats(
+            sessions
+        )
 
         current_streak = streak_future.result()
         exams_readiness = readiness_future.result()
